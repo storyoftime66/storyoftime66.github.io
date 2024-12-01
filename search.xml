@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>UMG基础</title>
+      <link href="/2024/01/24/Basic-UMG/"/>
+      <url>/2024/01/24/Basic-UMG/</url>
+      
+        <content type="html"><![CDATA[<h1 id="用户控件的生命周期"><a href="#用户控件的生命周期" class="headerlink" title="用户控件的生命周期"></a>用户控件的生命周期</h1><h2 id="蓝图中的生命周期事件"><a href="#蓝图中的生命周期事件" class="headerlink" title="蓝图中的生命周期事件"></a>蓝图中的生命周期事件</h2><p>我们将继承自用户控件(<code>UUserWidget</code>)的蓝图都称为用户控件。<br>下面列出的几个是用户控件带有的用于控制生命周期的事件，这几个事件也可以下面生命周期示意图中找到对应的C++函数。</p><p><img src="/2024/01/24/Basic-UMG/%E7%94%A8%E6%88%B7%E6%8E%A7%E4%BB%B6%E4%BA%8B%E4%BB%B6.png" alt="用户控件中的事件"></p><p>其中，<br><code>事件初始化</code>在<strong>控件创建时</strong>立即触发，<code>事件预构造</code>和<code>事件构造</code>在控件被<strong>添加到视口</strong>，或成为<strong>已添加到视口的面板控件</strong>的子项时触发。<br><code>事件Tick</code>在控件<strong>对用户可见</strong>时触发。<br><code>事件解构</code>在控件<strong>从视口移除</strong>，或<strong>从已添加到视口的面板控件移除</strong>时触发。</p><p><code>事件初始化</code> <code>事件预构造</code> <code>事件构造</code>都可以用于控件的初始化，但由于控件可能会被多次从添加到视口和从视口移除，所以只需要执行一次的初始化逻辑可以放到<code>事件初始化</code>中完成。<br>那么<code>事件预构造</code> <code>事件构造</code>又有什么区别呢？<code>事件预构造</code>在<strong>编译控件蓝图</strong>时也会触发，它的本意是用来方便UI设计的，如果在控件样式相关的初始化逻辑放在<code>事件预构造</code>中，编译蓝图后样式变化会直接反映在设计器中，使开发者不需要运行游戏也可以预览UI样式。</p><p>小结，若要初始化用户控件，对于只需要执行一次的逻辑，最好放到<code>事件初始化</code>中执行；对于样式相关的逻辑，放到<code>事件预构造</code>中可以直接预览到样式的变化。</p><h2 id="C-中的生命周期函数"><a href="#C-中的生命周期函数" class="headerlink" title="C++中的生命周期函数"></a>C++中的生命周期函数</h2><p>用户控件生命周期函数：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">virtual bool Initialize();</span><br><span class="line">virtual void NativeOnInitialized();</span><br><span class="line">virtual void NativePreConstruct();</span><br><span class="line">virtual void NativeConstruct();</span><br><span class="line">virtual void NativeTick(const FGeometry&amp; MyGeometry, float InDeltaTime);</span><br><span class="line">virtual void NativeDestruct();</span><br><span class="line">virtual void BeginDestroy() override; // virtual void RemoveFromParent();</span><br></pre></td></tr></table></figure><p>下面是用户控件生命周期的示意图，其中蓝色部分代表会暴露到蓝图的函数。<br><img src="/2024/01/24/Basic-UMG/%E7%94%A8%E6%88%B7%E6%8E%A7%E4%BB%B6%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png" alt="用户控件的生命周期"></p><h2 id="用户控件内变量的初始化"><a href="#用户控件内变量的初始化" class="headerlink" title="用户控件内变量的初始化"></a>用户控件内变量的初始化</h2><p>在用户控件中创建变量后，可以发现变量有很多属性。<br><img src="/2024/01/24/Basic-UMG/%E5%8F%98%E9%87%8F%E5%B1%9E%E6%80%A7.png" alt="变量属性"><br>以上属性中，“<em>可编辑实例</em>”“<em>生成时公开</em>”与变量的初始值有关。<br>勾选<em>可编辑实例</em>后，可在控件实例的细节窗口中设置该变量的初始值，如下图所示。<br><img src="/2024/01/24/Basic-UMG/%E5%8F%AF%E7%BC%96%E8%BE%91%E5%AE%9E%E4%BE%8B.png" alt="可编辑实例"></p><p>勾选<em>生成时公开</em>后，在使用<code>创建控件(CreateWidget)</code>节点创建该控件时，会有变量对应的引脚出现，如下图所示。<br><img src="/2024/01/24/Basic-UMG/%E7%94%9F%E6%88%90%E6%97%B6%E5%85%AC%E5%BC%80.png" alt="生成时公开"></p><p>以上两种变量值设置的时间点有所不同，<em>可编辑实例</em>变量的默认值是保存在硬盘里的，在加载父控件时会一并加载，所以<em>可编辑实例</em>变量在<code>事件初始化</code>时就已经具有默认值。<br><em>生成时公开</em>则不同，这类变量是控件创建后才传入的值，所以在<code>事件初始化(OnInitialized)</code>时值还未设置成传入的值，此时读取的话只能读取到在控件蓝图中设置的默认值。在<code>创建控件(CreateWidget)</code>节点执行完成后，则可以读取到正确的值。显然，若控件需要动态传入的值进行初始化，则不可以在<code>事件初始化</code>中进行初始化，仅可在<code>事件预构造</code>或<code>事件构造</code>进行。</p><h1 id="控件的属性"><a href="#控件的属性" class="headerlink" title="控件的属性"></a>控件的属性</h1><h2 id="可视性"><a href="#可视性" class="headerlink" title="可视性"></a>可视性</h2><table><thead><tr><th>可视性</th><th>是否绘制</th><th>是否影响布局</th><th>是否可点击</th></tr></thead><tbody><tr><td>可视</td><td>✓</td><td>✓</td><td>✓</td></tr><tr><td>已折叠</td><td>×</td><td>×</td><td>×</td></tr><tr><td>隐藏</td><td>×</td><td>✓</td><td>×</td></tr><tr><td>非可命中测试</td><td>✓</td><td>✓</td><td>×</td></tr></tbody></table>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> UI </tag>
+            
+            <tag> UMG </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>CommonUI: Activatable Widgets</title>
+      <link href="/2023/12/07/CommonUI-Activatable-Widgets/"/>
+      <url>/2023/12/07/CommonUI-Activatable-Widgets/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Activatable-Widget"><a href="#Activatable-Widget" class="headerlink" title="Activatable Widget"></a>Activatable Widget</h1><p><code>Activatable Widget</code>直译为可激活控件，它继承自<code>UCommonUserWidget</code>（这个类继承自<code>UUserWidget</code>），下面是它的简化结构。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CommonActivatableWidget.h</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">COMMONUI_API</span> UCommonActivatableWidget : <span class="keyword">public</span> UCommonUserWidget</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">UPROPERTY</span>(BlueprintReadOnly, Category = ActivatableWidget, meta = (AllowPrivateAccess = <span class="literal">true</span>))</span><br><span class="line">    <span class="type">bool</span> bIsActive = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(Transient)</span><br><span class="line">    TArray&lt;TWeakObjectPtr&lt;UCommonActivatableWidget&gt;&gt; VisibilityBoundWidgets;</span><br><span class="line"></span><br><span class="line">    ESlateVisibility ActivatedBindVisibility = ESlateVisibility::SelfHitTestInvisible;</span><br><span class="line">    ESlateVisibility DeactivatedBindVisibility = ESlateVisibility::SelfHitTestInvisible;</span><br><span class="line">    <span class="type">bool</span> bAllActive = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">mutable</span> FSimpleMulticastDelegate OnActivatedEvent;</span><br><span class="line">    <span class="keyword">mutable</span> FSimpleMulticastDelegate OnDeactivatedEvent;</span><br><span class="line">    <span class="keyword">mutable</span> FSimpleMulticastDelegate OnSlateReleasedEvent;</span><br><span class="line">    <span class="keyword">mutable</span> FSimpleMulticastDelegate OnRequestRefreshFocusEvent;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><h1 id="Activatable-Widget-Container"><a href="#Activatable-Widget-Container" class="headerlink" title="Activatable Widget Container"></a>Activatable Widget Container</h1><p>顾名思义</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> UI </tag>
+            
+            <tag> CommonUI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>GameSettings插件</title>
+      <link href="/2023/11/24/GameSettings-Plugin/"/>
+      <url>/2023/11/24/GameSettings-Plugin/</url>
+      
+        <content type="html"><![CDATA[<p>虚幻的学习项目《Lyra》中包含很多没上虚幻商城的插件。GameSettings是其中用来处理游戏设置相关逻辑的插件。</p><p><a href="https://docs.unrealengine.com/5.2/zh-CN/lyra-sample-game-settings-in-unreal-engine/">UE5.2的官方文档</a>中也有一点对GameSettings插件的描述，但目前内容还不够完善，插件的功能和使用方法还需要自己探索。</p><h1 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h1><table><thead><tr><th>主要类</th><th>说明</th></tr></thead><tbody><tr><td>UGameSettingRegistry</td><td>包含多个UGameSettingCollection</td></tr><tr><td>UGameSettingCollection</td><td>一个设置集合，可以包含多个UGameSetting，通常是同一个功能模块的设置，如画面设置、声音设置等</td></tr><tr><td>UGameSetting</td><td>一个设置项，通常包含一个UGameSettingValue</td></tr><tr><td>UGameSettingValue</td><td>一种类型的设置值</td></tr></tbody></table><table><thead><tr><th>UI相关类和资产</th><th>说明</th></tr></thead><tbody><tr><td>UGameSettingPanel</td><td></td></tr><tr><td>UGameSettingListEntryBase</td><td></td></tr><tr><td>UGameSettingVisualData</td><td>数据资产，连接UGameSettingListEntryBase和UGameSetting</td></tr><tr><td>FGameSettingDataSource</td><td>单条设置的数据来源</td></tr></tbody></table><h1 id="UGameSettingCollection"><a href="#UGameSettingCollection" class="headerlink" title="UGameSettingCollection"></a>UGameSettingCollection</h1><p>UGameSettingCollection继承自UGameSetting</p><p>Initialize(LocalPlayer)</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> UI </tag>
+            
+            <tag> 插件 </tag>
+            
+            <tag> settings </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>UE5中的增强输入</title>
+      <link href="/2023/11/23/Enhanced-Input-in-UE5/"/>
+      <url>/2023/11/23/Enhanced-Input-in-UE5/</url>
+      
+        <content type="html"><![CDATA[<h1 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h1><ol><li><p><strong>InputAction 输入动作，以下简称<code>IA</code></strong><br> 输入动作是一个抽象的概念，比如在游戏中，开门、拾取、射击都可以作为一个输入动作。</p></li><li><p><strong>InputMappingContext 输入映射上下文，以下简称<code>IMC</code></strong><br> 输入映射顾名思义，就是<strong>物理按键到<code>IA</code>的映射</strong>，比如按“A”键可以向左移动、按“F”键可以进行拾取等。<br> 输入映射上下文包含一系列物理按键到<code>IA</code>的映射。</p></li><li><p><strong>PlayerMappableInputConfig 玩家可映射输入配置，以下简称<code>PMI</code></strong><br> 玩家可映射输入配置实质上是一组<code>IMC</code>组成的集合。</p></li><li><p>Modifier 修饰器</p></li><li><p>Trigger 触发器</p></li></ol><h1 id="Lyra输入系统"><a href="#Lyra输入系统" class="headerlink" title="Lyra输入系统"></a>Lyra输入系统</h1><p>封装对应关系以及职能：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">FMappableConfigPair -&gt; UPlayerMappableInputConfig</span><br><span class="line"></span><br><span class="line">ULyraHeroComponent -|&gt; TArray&lt;FMappableConfigPair&gt; (TArray&lt;UPlayerMappableInputConfig&gt;)</span><br><span class="line"></span><br><span class="line">ULyraPawnData (Asset) -&gt; ULyraInputConfig (Asset) -&gt; TArray&lt;UInputAction&gt; Native, TArray&lt;UInputAction&gt; Ability</span><br><span class="line"></span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 输入 </tag>
+            
+            <tag> 增强输入 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>骨骼动画系统</title>
+      <link href="/2023/11/02/Skeletal-Mesh-Animation/"/>
+      <url>/2023/11/02/Skeletal-Mesh-Animation/</url>
+      
+        <content type="html"><![CDATA[<p>骨骼基础<br>关节和骨骼</p><p>局部空间、组件空间、骨骼空间</p><p>骨骼的全局空间和局部空间</p><p>ControlRig中的局部、本地、全局</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 骨骼动画 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>有趣的项目和网站</title>
+      <link href="/2023/09/14/Awesome-Projects-and-Websites/"/>
+      <url>/2023/09/14/Awesome-Projects-and-Websites/</url>
+      
+        <content type="html"><![CDATA[<h2 id="QR-Code-Generator"><a href="#QR-Code-Generator" class="headerlink" title="QR-Code-Generator"></a>QR-Code-Generator</h2><p>使用多种语言实现的二维码生成器</p><p><a href="https://github.com/nayuki/QR-Code-generator">Github项目</a><br><a href="https://www.nayuki.io/page/qr-code-generator-library">在线示例</a><br><a href="https://www.nayuki.io/page/creating-a-qr-code-step-by-step">教你怎么生成二维码</a></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>SlateUI中的坐标系统</title>
+      <link href="/2023/09/13/Coordinate-System-in-UMG/"/>
+      <url>/2023/09/13/Coordinate-System-in-UMG/</url>
+      
+        <content type="html"><![CDATA[<p>※ UE版本: 5.1.1, 系统: Windows 10<br>※ 最后更新日期: 2023-12-14</p><h1 id="坐标系统简介"><a href="#坐标系统简介" class="headerlink" title="坐标系统简介"></a>坐标系统简介</h1><h2 id="坐标系与DPI缩放"><a href="#坐标系与DPI缩放" class="headerlink" title="坐标系与DPI缩放"></a>坐标系与DPI缩放</h2><p>常见的UI系统都习惯以<strong>左上角</strong>作为坐标系的原点，往右为x轴正方向，往下为y轴正方向，SlateUI也不例外。</p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E4%BC%A0%E7%BB%9F%E7%9A%84%E5%B1%8F%E5%B9%95%E5%9D%90%E6%A0%87%E7%B3%BB.png" alt="屏幕坐标系示意图"></p><p>为了使UI界面能够自动适应各种不同分辨率的显示设备，SlateUI使用<strong>DPI缩放</strong>来控制UI元素的整体尺寸。</p><p>所谓DPI缩放（<code>DPI Scale</code>），其实只是一个浮点值，这个值的大小为视口坐标空间中单位长度与显示器实际像素长度的比值。<br>举个例子：</p><ol><li>若显示器分辨率为1920px × 1080px，游戏视口实际大小为1280px × 720px，则此时DPI缩放的值为0.67。</li><li>若显示器分辨率为3840px × 2160px，游戏视口实际大小为1920px × 1080px，则此时DPI缩放的值为1.0。</li><li>若显示器分辨率为3840px × 2160px，游戏视口实际大小也为3840px × 2160px，则此时DPI缩放的值为2.0。</li></ol><p>从上面的例子可以看出，SlateUI希望游戏视口内的坐标空间范围尽量接近1920×1080，好让开发者能够忽略不同用户显示设备的差异，用统一的标准设计和实现UI功能。</p><h2 id="SlateUI中的坐标空间"><a href="#SlateUI中的坐标空间" class="headerlink" title="SlateUI中的坐标空间"></a>SlateUI中的坐标空间</h2><p>SlateUI中有三种坐标空间：<strong>绝对空间（也叫屏幕空间）</strong>、<strong>视口空间</strong>、<strong>本地空间</strong>。这几个坐标空间仅在下面两个属性上存在差异：</p><ol><li><strong>原点位置</strong></li><li>是否经过<a href="TODO"><strong>DPI缩放</strong></a></li></ol><p>下面对每个类型的坐标空间进行解释。</p><p><strong>绝对空间</strong>，以<strong>显示器的左上角</strong>为坐标原点，并且绝对空间的像素大小<strong>未经过缩放</strong>，坐标中的像素大小就是物理像素的大小。</p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E7%BB%9D%E5%AF%B9%E7%A9%BA%E9%97%B4.png" alt="绝对空间坐标示意图"></p><p>“获取平台上鼠标位置（GetMousePositionOnPlatform）”节点获取到的就是这个坐标。</p><p><strong>视口空间</strong>，以<strong>游戏视口左上角</strong>为原点，坐标空间中的像素大小<strong>经过缩放</strong>，需要乘上<code>DPI Scale</code>才能得到物理像素下的大小。</p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E8%A7%86%E5%8F%A3%E7%A9%BA%E9%97%B4.png" alt="视口空间坐标示意图"></p><p><strong>本地空间</strong>，以<strong>父控件左上角为</strong>原点，坐标空间中的像素大小<strong>也经过缩放</strong>，需要乘上<code>DPI Scale</code>。<br><img src="/2023/09/13/Coordinate-System-in-UMG/%E6%9C%AC%E5%9C%B0%E7%A9%BA%E9%97%B4.png" alt="本地空间坐标示意图"></p><h2 id="蓝图中常见的坐标节点"><a href="#蓝图中常见的坐标节点" class="headerlink" title="蓝图中常见的坐标节点"></a>蓝图中常见的坐标节点</h2><p>蓝图中有很多与坐标相关的节点，刚接触UMG坐标的朋友容易对这些节点返回的坐标类型感到迷惑，这里特别列举一些常用的节点。</p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E9%BC%A0%E6%A0%87%E5%9D%90%E6%A0%87%E7%9B%B8%E5%85%B3.png" alt="获取鼠标坐标"></p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E4%BB%8E%E9%BC%A0%E6%A0%87%E4%BA%8B%E4%BB%B6%E4%B8%AD%E8%8E%B7%E5%8F%96%E5%9D%90%E6%A0%87.png" alt="从鼠标事件中获取"></p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E6%9C%AC%E5%9C%B0%E5%88%B0%E8%A7%86%E5%8F%A3%E8%8A%82%E7%82%B9.png" alt="本地到视口"></p><p>本地到视口这个节点有些特殊，它传出的<code>Viewport Position</code>是正常的视口空间坐标，但<code>Pixel Position</code>是以视口左上角为原点的绝对坐标，也就是使用<code>Viewport Position</code>直接乘<code>DPI Scale</code>得到的坐标。这个<code>Pixel Position</code>很奇怪，大多数场景下都不能直接使用。</p><p>另外，如本地到视口节点这样需要传入一个几何体<code>Geometry</code>的节点，另一个传入的本地坐标参数<code>Local Coordinate</code>是以此几何体做参考系的本地空间。也就是说，<strong>这里传入的<code>(0, 0)</code>其实指的是几何体<code>Geometry</code>的左上角！</strong></p><h1 id="几何体FGeometry"><a href="#几何体FGeometry" class="headerlink" title="几何体FGeometry"></a>几何体FGeometry</h1><p>TODO: 绘制空间几何体</p><p>TODO: Tick空间几何体</p><p>TODO: 缓存空间几何体</p><h1 id="双屏和双游戏窗口"><a href="#双屏和双游戏窗口" class="headerlink" title="双屏和双游戏窗口"></a>双屏和双游戏窗口</h1><p>TODO</p><p>绝对空间：<br>绝对空间仅与显示器有关。双屏时仍然以主屏左上角为原点，若副屏在主屏左侧，则副屏的坐标会从左侧与主屏坐标拼接，如图所示。</p><p><img src="/2023/09/13/Coordinate-System-in-UMG/%E5%8F%8C%E5%B1%8F%E7%BB%9D%E5%AF%B9%E7%A9%BA%E9%97%B4.png" alt="双屏绝对空间"></p><p>视口空间：<br>TODO</p><h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><ol><li>DPI 缩放 <a href="https://docs.unrealengine.com/5.1/zh-CN/dpi-scaling-in-unreal-engine/">https://docs.unrealengine.com/5.1/zh-CN/dpi-scaling-in-unreal-engine/</a></li><li><a href="https://baemincheon.github.io/2020/02/09/unreal-widget-coordinate-system/">Calculating widget coordinate in UnrealEngine</a></li></ol>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> UI </tag>
+            
+            <tag> UMG </tag>
+            
+            <tag> SlateUI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>虚幻引擎中的数据表</title>
+      <link href="/2023/09/09/DataTable-in-UE4/"/>
+      <url>/2023/09/09/DataTable-in-UE4/</url>
+      
+        <content type="html"><![CDATA[<p>※ UE版本: 4.27.2, 系统: Windows 10</p><h1 id="数据表是什么？"><a href="#数据表是什么？" class="headerlink" title="数据表是什么？"></a>数据表是什么？</h1><p>数据表（DataTable）是UE4中的一种数据结构，它可以看成是键为<code>FName</code>、值为<code>UStruct</code>的map，通常用于保存结构化游戏数据。例如角色各等级升级需要的经验，不同怪物的攻击力、血量、防御、头像等数据，在初始化Actor时可以查询数据表来获取属性初值。</p><h1 id="数据表的创建和使用"><a href="#数据表的创建和使用" class="headerlink" title="数据表的创建和使用"></a>数据表的创建和使用</h1><h2 id="在编辑器中创建和使用数据表"><a href="#在编辑器中创建和使用数据表" class="headerlink" title="在编辑器中创建和使用数据表"></a>在编辑器中创建和使用数据表</h2><p><strong>（1）手动创建数据表</strong></p><p>在UE编辑器的内容浏览器中点选 <em><strong>右键-&gt;其他-&gt;数据表格</strong></em> 即可创建数据表。<br><img src="/2023/09/09/DataTable-in-UE4/1.png" alt="创建数据表"></p><p>创建数据表时需要选择一种行结构 ，这种结构可以在编辑器中 <em><strong>蓝图-&gt;结构</strong></em> 直接创建，也可以在C++中创建<code>UStruct</code>。</p><p><strong>（2）导入数据生成数据表</strong></p><p>TODO</p><p><strong>（3）在蓝图中使用数据表</strong></p><p>需要在蓝图中使用数据表时，搜索“数据表格”（或”DataTable”）即可找到相关的蓝图节点。常用的蓝图节点有：</p><h2 id="在C-中定义和使用数据表"><a href="#在C-中定义和使用数据表" class="headerlink" title="在C++中定义和使用数据表"></a>在C++中定义和使用数据表</h2><p><strong>（1）C++定义行结构</strong></p><p>要使用数据表就先要定义一个结构体作为数据表的行结构。要使结构体可以作为数据表的行结构，就需要继承<code>FTableRowBase</code>。 参考下面的代码示例：</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">USTRUCT</span>(BlueprintType)</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">FMyTableRow</span> : <span class="keyword">public</span> FTableRowBase</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 字段示例 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere)</span><br><span class="line">    <span class="type">float</span> MyField;</span><br><span class="line"></span><br><span class="line">    ...  <span class="comment">// 添加其他字段</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><p>其中<code>USTRUCT</code>的<code>BlueprintType</code>说明符的作用是在蓝图中给这个结构体生成<code>Make</code>和<code>Break</code>节点，非必须；而字段MyField的<code>EditEverywhere</code>说明符的作用是使字段能在数据表中直接编辑，通常只添加到可手动修改的字段上。</p><p><strong>（2）C++定义数据表</strong></p><p>TODO</p><p><strong>（3）C++使用数据表</strong></p><p>数据表的C++类型是<code>UDataTable</code>，下面是一些常用的查表方法。更多方法可以直接查看<code>UDataTable</code>源码。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UDataTable* DataTable;</span><br><span class="line">FName RowName = <span class="built_in">FName</span>(<span class="string">&quot;RowName&quot;</span>);</span><br><span class="line">FString DebugMsg = <span class="built_in">FString</span>(<span class="string">&quot;DebugMsg&quot;</span>);</span><br><span class="line"></span><br><span class="line">FMyRowStruct* RowData = DataTable-&gt;<span class="built_in">FindRow</span>&lt;FMyRowStruct&gt;(RowName, DebugMsg);    <span class="comment">// 查找特定行</span></span><br><span class="line">TArray&lt;FName&gt; RowNames = DataTable-&gt;<span class="built_in">GetRowNames</span>();                              <span class="comment">// 获取所有行名</span></span><br><span class="line">TArray&lt;FMyRowStruct*&gt; Rows;</span><br><span class="line">DataTable-&gt;<span class="built_in">GetAllRows</span>&lt;FMyRowStruct&gt;(DebugMsg, Rows);                            <span class="comment">// 获取所有行</span></span><br></pre></td></tr></table></figure><p><strong>（4）可能遇到的问题</strong></p><p>使用C++结构体作为行结构时可能出现一个问题，就是在UE编辑器中无法编辑数据表中的某些字段。<br>这时只需要将该字段<code>UPROPERTY</code>中<code>Category</code>标识符的分类深度缩减成一层就可以了 ，参考下面的代码示例。推测这是UE编辑器的一个Bug。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">USTRUCT</span>(BlueprintType)</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">FMyTableRow</span> : <span class="keyword">public</span> FTableRowBase</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 这个字段*无法*在数据表中编辑 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere, Category=<span class="string">&quot;Cate0|Cate1&quot;</span>)</span><br><span class="line">    <span class="type">float</span> MyField1;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 这个字段可以在数据表中编辑 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere, Category=<span class="string">&quot;Cate0&quot;</span>)</span><br><span class="line">    <span class="type">float</span> MyField2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><h1 id="为什么要用数据表？"><a href="#为什么要用数据表？" class="headerlink" title="为什么要用数据表？"></a>为什么要用数据表？</h1><p>看了上面的介绍，可能你会觉得数据表不就是一个轻量的结构化数据集吗？为什么不用JSON、CSV这些格式来存储数据呢？<br>数据表对于非程序人员比较友好。数据表与UE编辑器整合度高，可以在编辑器中直接编辑，并且在处理如类型、引用、材质纹理等资源时可以在编辑器内直接选择，方便快捷。<br>数据表可以导出成CSV，也可以通过导入CSV生成。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 虚幻引擎 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据表 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>

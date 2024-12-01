@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<head>
+  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  
+  <title>虚幻引擎中的数据表 | Huzhou&#39;s blog</title>
+  <link rel="shortcut icon" href="https://avatars.githubusercontent.com/u/37776197?s=96&v=4">
+  <meta name="description" content="※ UE版本: 4.27.2, 系统: Windows 10 数据表是什么？数据表（DataTable）是UE4中的一种数据结构，它可以看成是键为FName、值为UStruct的map，通常用于保存结构化游戏数据。例如角色各等级升级需要的经验，不同怪物的攻击力、血量、防御、头像等数据，在初始化Actor时可以查询数据表来获取属性初值。 数据表的创建和使用在编辑器中创建和使用数据表（1）手动创建数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚幻引擎中的数据表">
+<meta property="og:url" content="http://www.huzhou66.cc/2023/09/09/DataTable-in-UE4/index.html">
+<meta property="og:site_name" content="Huzhou&#39;s blog">
+<meta property="og:description" content="※ UE版本: 4.27.2, 系统: Windows 10 数据表是什么？数据表（DataTable）是UE4中的一种数据结构，它可以看成是键为FName、值为UStruct的map，通常用于保存结构化游戏数据。例如角色各等级升级需要的经验，不同怪物的攻击力、血量、防御、头像等数据，在初始化Actor时可以查询数据表来获取属性初值。 数据表的创建和使用在编辑器中创建和使用数据表（1）手动创建数据">
+<meta property="og:locale">
+<meta property="og:image" content="http://www.huzhou66.cc/2023/09/09/DataTable-in-UE4/1.png">
+<meta property="article:published_time" content="2023-09-09T07:38:57.000Z">
+<meta property="article:modified_time" content="2024-03-21T17:37:46.231Z">
+<meta property="article:author" content="Huzhou">
+<meta property="article:tag" content="数据表">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.huzhou66.cc/2023/09/09/DataTable-in-UE4/1.png">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+<script src="/js/image-preview.js" defer></script>
+
+  
+  
+<script src="/js/main.js" defer></script>
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+<html>
+
+<body>
+  
+  <div class="container">
+    <header class="user-select">
+  <div class="header-container-wrap">
+    <div class="header-container">
+      
+      
+      
+      <style>
+        .logo>* {
+          width:auto;height:4rem;border-radius:50%;;
+        }
+      </style>
+      
+      <a href="/" class="logo">
+        <img data-src="https://avatars.githubusercontent.com/u/37776197?s=96&v=4" / src=/img/load.gif>
+      </a>
+      
+      <nav>
+        
+        <div class="search" tabindex="-1">
+          <input class="search-input" placeholder="Search for articles" type="search" maxlength="64">
+          <div class="seach-icon-container">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12.4008 12.4008C14.744 10.0577 14.744 6.25871 12.4008 3.91556C10.0577 1.57242 6.25871 1.57242 3.91556 3.91556C1.57242 6.25871 1.57242 10.0577 3.91556 12.4008C6.25871 14.744 10.0577 14.744 12.4008 12.4008ZM12.4008 12.4008L15.5828 15.5828" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"></path>
+</svg>
+          </div>
+          <div class="search-history">
+            <div class="search-history-title">
+              <span>Search for History</span>
+              <span class="search-history-clear">Clear</span>
+            </div>
+            <div class="search-history-list"></div>
+          </div>
+          <div class="search-result"></div>
+          
+<script src="/js/search.js" path="&#x2F;search.json" defer></script>
+
+        </div>
+        
+
+        
+        
+        <ul class="nav-list">
+          
+          <li class="nav-list-item">
+            <a href="/">Home</a>
+          </li>
+          
+        </ul>
+        <div class="sidebar-nav" tabindex="-1">
+          <svg class="sidebar-nav-btn" viewBox="0 0 16 16" width="16" height="16">
+  <path d="M3,11.335h16M3,6h16M3,16.67h16" transform="translate(-3-3.335)" stroke="currentColor" stroke-width="2" />
+</svg>
+          <div class="mask" tabindex="-1"></div>
+          <ul class="nav-list">
+            
+            <li class="nav-list-item">
+              <a href="/">Home</a>
+            </li>
+            
+          </ul>
+        </div>
+        
+      </nav>
+    </div>
+  </div>
+</header>
+    <div class="main-wrap">
+      <main class="main-width">
+        
+        <h1 class="page-title">虚幻引擎中的数据表</h1>
+        
+        <article class="article page">
+  <div class="article-info">
+    
+    <img data-src="https://avatars.githubusercontent.com/u/37776197?s=96&amp;v=4" alt="avatar" class="avatar" src=/img/load.gif>
+    
+    <div class="article-meta">
+      <div class="author-name">Huzhou</div>
+      <div class="article-meta-list">
+        
+        <time datetime="2023-09-09 15:38:57" title="2023-09-09 15:38:57" class="time">
+          2023-09-09 15:38:57
+        </time>
+        
+        <div class="article-meta-item-wrap">
+          
+          <div class="article-meta-item">
+            <svg class="word-icon" width="16" height="16" viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linejoin="round" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" >
+  <path d="M10 4H30L40 14V42C40 43.1046 39.1046 44 38 44H10C8.89543 44 8 43.1046 8 42V6C8 4.89543 8.89543 4 10 4Z"></path>
+  <path d="M16.0083 20L19.0083 34L24.0083 24L29.0083 34L32.0083 20"></path>
+</svg>
+            <span>842</span>
+          </div>
+          
+          
+          <div class="article-meta-item">
+            <svg class="time-icon" width="16" height="16" viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" />
+  <path d="M24.0084 12.0001L24.0072 24.0089L32.4866 32.4883" />
+</svg>
+            <span>3min</span>
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="article-content"><p>※ UE版本: 4.27.2, 系统: Windows 10</p>
+<h1 id="数据表是什么？"><a href="#数据表是什么？" class="headerlink" title="数据表是什么？"></a>数据表是什么？</h1><p>数据表（DataTable）是UE4中的一种数据结构，它可以看成是键为<code>FName</code>、值为<code>UStruct</code>的map，通常用于保存结构化游戏数据。例如角色各等级升级需要的经验，不同怪物的攻击力、血量、防御、头像等数据，在初始化Actor时可以查询数据表来获取属性初值。</p>
+<h1 id="数据表的创建和使用"><a href="#数据表的创建和使用" class="headerlink" title="数据表的创建和使用"></a>数据表的创建和使用</h1><h2 id="在编辑器中创建和使用数据表"><a href="#在编辑器中创建和使用数据表" class="headerlink" title="在编辑器中创建和使用数据表"></a>在编辑器中创建和使用数据表</h2><p><strong>（1）手动创建数据表</strong></p>
+<p>在UE编辑器的内容浏览器中点选 <em><strong>右键-&gt;其他-&gt;数据表格</strong></em> 即可创建数据表。<br><img data-src="/2023/09/09/DataTable-in-UE4/1.png" alt="创建数据表" src=/img/load.gif></p>
+<p>创建数据表时需要选择一种行结构 ，这种结构可以在编辑器中 <em><strong>蓝图-&gt;结构</strong></em> 直接创建，也可以在C++中创建<code>UStruct</code>。</p>
+<p><strong>（2）导入数据生成数据表</strong></p>
+<p>TODO</p>
+<p><strong>（3）在蓝图中使用数据表</strong></p>
+<p>需要在蓝图中使用数据表时，搜索“数据表格”（或”DataTable”）即可找到相关的蓝图节点。常用的蓝图节点有：</p>
+<h2 id="在C-中定义和使用数据表"><a href="#在C-中定义和使用数据表" class="headerlink" title="在C++中定义和使用数据表"></a>在C++中定义和使用数据表</h2><p><strong>（1）C++定义行结构</strong></p>
+<p>要使用数据表就先要定义一个结构体作为数据表的行结构。要使结构体可以作为数据表的行结构，就需要继承<code>FTableRowBase</code>。 参考下面的代码示例：</p>
+<figure class="highlight c++">
+    <div class="code-block-header" lang="c++">
+      <span class="copy-code">COPY</span>
+    </div>
+    <table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">USTRUCT</span>(BlueprintType)</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">FMyTableRow</span> : <span class="keyword">public</span> FTableRowBase</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 字段示例 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere)</span><br><span class="line">    <span class="type">float</span> MyField;</span><br><span class="line"></span><br><span class="line">    ...  <span class="comment">// 添加其他字段</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>USTRUCT</code>的<code>BlueprintType</code>说明符的作用是在蓝图中给这个结构体生成<code>Make</code>和<code>Break</code>节点，非必须；而字段MyField的<code>EditEverywhere</code>说明符的作用是使字段能在数据表中直接编辑，通常只添加到可手动修改的字段上。</p>
+<p><strong>（2）C++定义数据表</strong></p>
+<p>TODO</p>
+<p><strong>（3）C++使用数据表</strong></p>
+<p>数据表的C++类型是<code>UDataTable</code>，下面是一些常用的查表方法。更多方法可以直接查看<code>UDataTable</code>源码。</p>
+<figure class="highlight c++">
+    <div class="code-block-header" lang="c++">
+      <span class="copy-code">COPY</span>
+    </div>
+    <table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UDataTable* DataTable;</span><br><span class="line">FName RowName = <span class="built_in">FName</span>(<span class="string">&quot;RowName&quot;</span>);</span><br><span class="line">FString DebugMsg = <span class="built_in">FString</span>(<span class="string">&quot;DebugMsg&quot;</span>);</span><br><span class="line"></span><br><span class="line">FMyRowStruct* RowData = DataTable-&gt;<span class="built_in">FindRow</span>&lt;FMyRowStruct&gt;(RowName, DebugMsg);    <span class="comment">// 查找特定行</span></span><br><span class="line">TArray&lt;FName&gt; RowNames = DataTable-&gt;<span class="built_in">GetRowNames</span>();                              <span class="comment">// 获取所有行名</span></span><br><span class="line">TArray&lt;FMyRowStruct*&gt; Rows;</span><br><span class="line">DataTable-&gt;<span class="built_in">GetAllRows</span>&lt;FMyRowStruct&gt;(DebugMsg, Rows);                            <span class="comment">// 获取所有行</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>（4）可能遇到的问题</strong></p>
+<p>使用C++结构体作为行结构时可能出现一个问题，就是在UE编辑器中无法编辑数据表中的某些字段。<br>这时只需要将该字段<code>UPROPERTY</code>中<code>Category</code>标识符的分类深度缩减成一层就可以了 ，参考下面的代码示例。推测这是UE编辑器的一个Bug。</p>
+<figure class="highlight c++">
+    <div class="code-block-header" lang="c++">
+      <span class="copy-code">COPY</span>
+    </div>
+    <table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">USTRUCT</span>(BlueprintType)</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">FMyTableRow</span> : <span class="keyword">public</span> FTableRowBase</span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 这个字段*无法*在数据表中编辑 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere, Category=<span class="string">&quot;Cate0|Cate1&quot;</span>)</span><br><span class="line">    <span class="type">float</span> MyField1;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** 这个字段可以在数据表中编辑 */</span></span><br><span class="line">    <span class="built_in">UPROPERTY</span>(EditEverywhere, Category=<span class="string">&quot;Cate0&quot;</span>)</span><br><span class="line">    <span class="type">float</span> MyField2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h1 id="为什么要用数据表？"><a href="#为什么要用数据表？" class="headerlink" title="为什么要用数据表？"></a>为什么要用数据表？</h1><p>看了上面的介绍，可能你会觉得数据表不就是一个轻量的结构化数据集吗？为什么不用JSON、CSV这些格式来存储数据呢？<br>数据表对于非程序人员比较友好。数据表与UE编辑器整合度高，可以在编辑器中直接编辑，并且在处理如类型、引用、材质纹理等资源时可以在编辑器内直接选择，方便快捷。<br>数据表可以导出成CSV，也可以通过导入CSV生成。</p>
+</div>
+  
+  <div class="article-end">
+    
+    <div class="article-meta">
+      
+      <div class="article-categories">
+        <div class="article-categories-name">Categories: </div>
+        
+        <a class="article-categories-item" href="/categories/%E8%99%9A%E5%B9%BB%E5%BC%95%E6%93%8E/">
+          虚幻引擎
+        </a>
+        
+      </div>
+      
+      
+      <div class="article-tags">
+        <div class="article-tags-name">Tags: </div>
+        
+        <a class="article-tags-item" href="/tags/%E6%95%B0%E6%8D%AE%E8%A1%A8/">
+          数据表
+        </a>
+        
+      </div>
+      
+    </div>
+    
+    
+
+  </div>
+</article>
+      </main>
+      <aside tabindex="-1">
+  
+  <div class="sidebar-block sidebar-sticky toc-wrap" tabindex="-1">
+    <div class="toc-btn">
+      <svg class="toc-btn-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 2.3 26.8 24.6 47.5 51.6 47.6h416.5v4z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z"></path>
+  <path d="M566.407 808.3c26.9-0.1 49.3-20.8 51.6-47.6-1.9-27.7-23.9-49.7-51.6-51.6h-412.6c-28.2-1.4-52.6 19.5-55.5 47.6 1.9 27.7 23.9 49.7 51.6 51.6h416.5z m309.3-249.9c26.9-0.1 49.3-20.8 51.6-47.6-2.2-26.8-24.6-47.5-51.6-47.6h-721.9c-27.7-2.8-52.5 17.4-55.3 45.1-0.1 0.8-0.1 1.7-0.2 2.5 0.9 27.2 23.6 48.5 50.7 47.6H875.707z m-103.1-245.9c26.9-0.1 49.3-20.8 51.6-47.6-0.4-28.3-23.2-51.1-51.5-51.6h-618.9c-29.5-1.1-54.3 21.9-55.5 51.4v0.2c1.4 27.8 25.2 49.2 53 47.8 0.8 0 1.7-0.1 2.5-0.2h618.8z"></path>
+</svg>
+    </div>
+    <div class="sidebar-title toc-title">Catalog</div>
+    <div class="sidebar-body">
+      <ul class="toc-list">
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%A8%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">数据表是什么？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%A1%A8%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E4%BD%BF%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">数据表的创建和使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8%E7%BC%96%E8%BE%91%E5%99%A8%E4%B8%AD%E5%88%9B%E5%BB%BA%E5%92%8C%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E8%A1%A8"><span class="toc-number">2.1.</span> <span class="toc-text">在编辑器中创建和使用数据表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%A8C-%E4%B8%AD%E5%AE%9A%E4%B9%89%E5%92%8C%E4%BD%BF%E7%94%A8%E6%95%B0%E6%8D%AE%E8%A1%A8"><span class="toc-number">2.2.</span> <span class="toc-text">在C++中定义和使用数据表</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8%E6%95%B0%E6%8D%AE%E8%A1%A8%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">为什么要用数据表？</span></a></li></ol>
+      </ul>
+    </div>
+  </div>
+  
+</aside>
+    </div>
+    
+    
+
+<footer class="footer main-width">
+  <div class="copyright">
+    &copy; 2020 - 2024
+    Huzhou
+  </div>
+  <div class="framework-info">
+    <span>Framework</span>
+    <a href="https://hexo.io" target="_blank">Hexo</a>
+    <span class="footer-separator">|</span>
+    <span>Theme</span>
+    <a href="https://github.com/Lete114/hexo-theme-MengD" target="_blank">MengD</a>
+  </div>
+  
+  <div class="custom">A clean and lightweight Hexo theme</div>
+  
+</footer>
+  </div>
+  
+</body>
+
+</html>
